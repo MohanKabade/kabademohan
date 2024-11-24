@@ -1,0 +1,105 @@
+#include <iostream>
+#include <pthread.h>
+#include <vector>
+
+#define NUM_THREADS 4
+
+// Global variables for dimensions
+int ROWS_A, COLS_A, ROWS_B, COLS_B;
+
+// Matrices
+std::vector<std::vector<int>> A, B, C;
+
+struct ThreadData {
+    int thread_id;
+    int start_row;
+    int end_row;
+};
+
+void *multiply(void *arg) {
+    ThreadData *data = (ThreadData *)arg;
+    int start = data->start_row;
+    int end = data->end_row;
+
+    for (int i = start; i < end; ++i) {
+        for (int j = 0; j < COLS_B; ++j) {
+            for (int k = 0; k < COLS_A; ++k) {
+                C[i][j] += A[i][k] * B[k][j];
+            }
+        }
+    }
+
+    pthread_exit(NULL);
+}
+
+int main() {
+    pthread_t threads[NUM_THREADS];
+    ThreadData thread_data[NUM_THREADS];
+
+    // Input dimensions of matrices
+    std::cout << "Enter rows and columns for Matrix A: ";
+    std::cin >> ROWS_A >> COLS_A;
+
+    std::cout << "Enter rows and columns for Matrix B: ";
+    std::cin >> ROWS_B >> COLS_B;
+
+    // Validate dimensions for matrix multiplication
+    if (COLS_A != ROWS_B) {
+        std::cout << "Error: Number of columns in A must equal number of rows in B.\n";
+        return 1;
+    }
+
+    // Resize matrices
+    A.resize(ROWS_A, std::vector<int>(COLS_A));
+    B.resize(ROWS_B, std::vector<int>(COLS_B));
+    C.resize(ROWS_A, std::vector<int>(COLS_B, 0));
+
+    // Input matrix A
+    std::cout << "Enter elements of Matrix A:\n";
+    for (int i = 0; i < ROWS_A; ++i) {
+        for (int j = 0; j < COLS_A; ++j) {
+            std::cin >> A[i][j];
+        }
+    }
+
+    // Input matrix B
+    std::cout << "Enter elements of Matrix B:\n";
+    for (int i = 0; i < ROWS_B; ++i) {
+        for (int j = 0; j < COLS_B; ++j) {
+            std::cin >> B[i][j];
+        }
+    }
+
+    int rows_per_thread = ROWS_A / NUM_THREADS;
+    int remaining_rows = ROWS_A % NUM_THREADS;
+
+    // Create threads
+    for (int t = 0; t < NUM_THREADS; ++t) {
+        thread_data[t].thread_id = t;
+        thread_data[t].start_row = t * rows_per_thread;
+        thread_data[t].end_row = (t + 1) * rows_per_thread;
+
+        // Distribute remaining rows among threads
+        if (t == NUM_THREADS - 1) {
+            thread_data[t].end_row += remaining_rows;
+        }
+
+        pthread_create(&threads[t], NULL, multiply, (void *)&thread_data[t]);
+    }
+
+    // Join threads
+    for (int t = 0; t < NUM_THREADS; ++t) {
+        pthread_join(threads[t], NULL);
+    }
+
+    // Print result matrix
+    std::cout << "Result matrix C:\n";
+    for (int i = 0; i < ROWS_A; ++i) {
+        for (int j = 0; j < COLS_B; ++j) {
+            std::cout << C[i][j] << " ";
+        }
+        std::cout << "\n";
+    }
+
+    return 0;
+}
