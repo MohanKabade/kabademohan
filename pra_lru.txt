@@ -1,0 +1,88 @@
+#include <stdio.h>
+
+int findLeastRecentlyUsed(int time[], int numFrames) {
+    int min = time[0], pos = 0;
+
+    // Find the frame with the minimum time (i.e., least recently used)
+    for (int i = 1; i < numFrames; i++) {
+        if (time[i] < min) {
+            min = time[i];
+            pos = i;
+        }
+    }
+
+    return pos;
+}
+
+int main() {
+    int frames[10], pages[30], time[10], numFrames, numPages, faults = 0, clock = 0, found;
+
+    // Input number of frames and pages
+    printf("Enter total frames: ");
+    scanf("%d", &numFrames);
+
+    printf("Enter total pages: ");
+    scanf("%d", &numPages);
+
+    // Input the page reference string
+    printf("Enter the page reference string: ");
+    for (int i = 0; i < numPages; i++) {
+        scanf("%d", &pages[i]);
+    }
+
+    // Initialize frames and time arrays
+    for (int i = 0; i < numFrames; i++) {
+        frames[i] = -1;   // Empty frames
+        time[i] = 0;      // No access time yet
+    }
+
+    // Loop through each page in the reference string
+    for (int i = 0; i < numPages; i++) {
+        found = 0; // Check if the page is already in memory (hit)
+
+        // Check if the page is already in memory
+        for (int j = 0; j < numFrames; j++) {
+            if (frames[j] == pages[i]) {
+                found = 1;
+                time[j] = ++clock; // Update access time
+                break;
+            }
+        }
+
+        // If page not found in memory (page fault)
+        if (found == 0) {
+            // If there's an empty frame, load the page there
+            for (int j = 0; j < numFrames; j++) {
+                if (frames[j] == -1) {
+                    frames[j] = pages[i];
+                    time[j] = ++clock; // Record the access time
+                    faults++; // Increment page fault count
+                    found = 1;
+                    break;
+                }
+            }
+
+            // If no empty frame, replace the least recently used page
+            if (found == 0) {
+                int replaceIndex = findLeastRecentlyUsed(time, numFrames);
+                frames[replaceIndex] = pages[i];
+                time[replaceIndex] = ++clock; // Update the time for the replaced frame
+                faults++; // Increment page fault count
+            }
+        }
+
+        // Display the current memory frames after each page reference
+        printf("Memory: ");
+        for (int j = 0; j < numFrames; j++) {
+            if (frames[j] != -1)
+                printf("%d ", frames[j]);
+            else
+                printf("- ");
+        }
+        printf("\n");
+    }
+
+    printf("Total Page Faults: %d\n", faults);
+
+    return 0;
+}

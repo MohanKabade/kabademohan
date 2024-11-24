@@ -1,0 +1,58 @@
+#include <stdio.h>
+
+int main() {
+    int memory[10], pages[30], numFrames, numPages, i, current = 0, faults = 0, found;
+
+    // Input the number of frames
+    printf("Enter total frames: ");
+    scanf("%d", &numFrames);
+
+    // Input the number of pages in the reference string
+    printf("Enter total pages: ");
+    scanf("%d", &numPages);
+
+    // Input the page reference string
+    printf("Enter the page reference string: ");
+    for(i = 0; i < numPages; i++) {
+        scanf("%d", &pages[i]);
+    }
+
+    // Initialize memory frames to -1 (empty)
+    for(i = 0; i < numFrames; i++) {
+        memory[i] = -1;
+    }
+
+    // Loop through each page in the reference string
+    for(i = 0; i < numPages; i++) {
+        found = 0; 
+
+        
+        for(int j = 0; j < numFrames; j++) {
+            if(memory[j] == pages[i]) {
+                found = 1;
+                break;
+            }
+        }
+
+        // If the page is not in memory (page fault)
+        if(found == 0) {
+            memory[current] = pages[i]; 
+            current = (current + 1) % numFrames; 
+            faults++; 
+        }
+
+        // Display current memory frames after each page reference
+        printf("Memory: ");
+        for(int j = 0; j < numFrames; j++) {
+            if(memory[j] != -1)
+                printf("%d ", memory[j]);
+            else
+                printf("- ");
+        }
+        printf("\n");
+    }
+
+    printf("Total Page Faults: %d\n", faults);
+
+    return 0;
+}
