@@ -1,0 +1,101 @@
+#include <stdio.h>
+
+int main() {
+    int p = 4, r = 3; // Number of processes and resources
+
+    int max[p][r], alloc[p][r], avail[r], need[p][r];
+    int completed[p], ans[p], ind = 0;
+
+    // Initialize completed array to 0
+    for (int i = 0; i < p; i++) {
+        completed[i] = 0;
+    }
+
+    // Input the max matrix
+    printf("Enter max matrix:\n");
+    for (int i = 0; i < p; i++) {
+        for (int j = 0; j < r; j++) {
+            scanf("%d", &max[i][j]);
+        }
+    }
+
+    // Input the allocation matrix
+    printf("Enter allocation matrix:\n");
+    for (int i = 0; i < p; i++) {
+        for (int j = 0; j < r; j++) {
+            scanf("%d", &alloc[i][j]);
+        }
+    }
+
+    // Input the available resources
+    printf("Enter available resources:\n");
+    for (int i = 0; i < r; i++) {
+        scanf("%d", &avail[i]);
+    }
+
+    // Calculate the need matrix
+    for (int i = 0; i < p; i++) {
+        for (int j = 0; j < r; j++) {
+            need[i][j] = max[i][j] - alloc[i][j];
+        }
+    }
+
+    // Print the need matrix
+    printf("Current Need Matrix:\n");
+    for (int i = 0; i < p; i++) {
+        for (int j = 0; j < r; j++) {
+            printf("%d ", need[i][j]);
+        }
+        printf("\n");
+    }
+
+    // Banker's Algorithm to find a safe sequence
+    int process_finished;
+    do {
+        process_finished = 0;
+
+        for (int i = 0; i < p; i++) {
+            if (completed[i] == 0) { // If process is not yet completed
+                int canfinish = 1;
+
+                for (int j = 0; j < r; j++) {
+                    if (need[i][j] > avail[j]) {
+                        canfinish = 0; // Process cannot finish
+                        break;
+                    }
+                }
+
+                if (canfinish == 1) { // Process can finish
+                    completed[i] = 1;
+                    ans[ind++] = i;
+
+                    // Release allocated resources
+                    for (int j = 0; j < r; j++) {
+                        avail[j] += alloc[i][j];
+                    }
+
+                    process_finished = 1;
+                }
+            }
+        }
+    } while (process_finished == 1 && ind < p); // Stop when all processes are checked or completed
+
+    // Check if the system is in a safe state
+    int safe = (ind == p); // Safe if all processes are added to the safe sequence
+
+    // Print the result
+    if (safe) {
+        printf("System is in a safe state.\nSafe sequence is:\n");
+        for (int i = 0; i < p; i++) {
+            printf("P%d", ans[i]);
+            if (i != p - 1) {
+                printf(" -> ");
+            }
+        }
+        printf("\n");
+    } else {
+        printf("System is not in a safe state!\n");
+    }
+
+    return 0;
+}
