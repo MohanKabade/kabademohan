@@ -1,6 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
-
+//First Come First Serve 
 void FCFS(int requests[], int n, int head) {
     int totalSeekTime = 0;
     
